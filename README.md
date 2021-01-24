@@ -1,2 +1,2 @@
-# ECSE-324
-Computer organization labs
+# Computer-Organization-Labs
+
