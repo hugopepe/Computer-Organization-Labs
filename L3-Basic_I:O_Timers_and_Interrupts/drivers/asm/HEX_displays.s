@@ -1,0 +1,153 @@
+	.text
+	.equ	HEX_BASE_1, 0xFF200020
+	.equ	HEX_BASE_2, 0xFF200030
+	.global HEX_clear_ASM
+	.global HEX_flood_ASM
+	.global HEX_write_ASM
+
+HEX_clear_ASM:
+	PUSH {R4}
+
+//HEX0 to HEX3
+	LDR R2, =0xFFFFFF80
+	LDR R3, =HEX_BASE_1
+	LDR R3, [R3]
+	MOV R4, #4
+LOOP1:
+	AND R1, R0, #0x1
+	LSR R0, R0, #1
+	CMP R1, #0
+	BEQ END_IF1
+	AND R3, R2, R3
+END_IF1:
+	ROR R2, R2, #24
+	SUBS R4, R4, #1
+	BGT LOOP1
+	LDR R4, =HEX_BASE_1
+	STR R3, [R4]
+
+//HEX4 to HEX5
+	LDR R3, =HEX_BASE_2
+	LDR R3, [R3]
+	MOV R4, #2
+LOOP2:
+	AND R1, R0, #0x1
+	LSR R0, R0, #1
+	CMP R1, #0
+	BEQ END_IF2
+	AND R3, R2, R3
+END_IF2:
+	ROR R2, R2, #24
+	SUBS R4, R4, #1
+	BGT LOOP2
+	LDR R4, =HEX_BASE_2
+	STR R3, [R4]
+
+	POP {R4}
+	BX LR
+
+
+HEX_flood_ASM:
+	PUSH {R4}
+
+//HEX0 to HEX3
+	MOV R2, #0x7F
+	LDR R3, =HEX_BASE_1
+	LDR R3, [R3]
+	MOV R4, #4
+LOOP3:
+	AND R1, R0, #0x1
+	LSR R0, R0, #1
+	CMP R1, #0
+	BEQ END_IF3
+	ORR R3, R2, R3
+END_IF3:
+	LSL R2, R2, #8
+	SUBS R4, R4, #1
+	BGT LOOP3
+	LDR R4, =HEX_BASE_1
+	STR R3, [R4]
+
+//HEX4 to HEX5
+	MOV R2, #0x7F
+	LDR R3, =HEX_BASE_2
+	LDR R3, [R3]
+	MOV R4, #2
+LOOP4:
+	AND R1, R0, #0x1
+	LSR R0, R0, #1
+	CMP R1, #0
+	BEQ END_IF4
+	ORR R3, R2, R3
+END_IF4:
+	LSL R2, R2, #8
+	SUBS R4, R4, #1
+	BGT LOOP4
+	LDR R4, =HEX_BASE_2
+	STR R3, [R4]
+
+	POP {R4}
+	BX LR
+
+
+HEX_write_ASM:
+	PUSH {R4, R5}
+
+//Decode value
+	LDR R2, =DISPLAY_CODES
+	LDR R5, [R2, R1, LSL #2]
+
+//HEX0 to HEX3
+	MOV R2, #0
+	LDR R3, =HEX_BASE_1
+	LDR R3, [R3]
+	MOV R4, #4
+LOOP5:
+	AND R1, R0, #0x1
+	LSR R0, R0, #1
+	CMP R1, #0
+	BEQ ELSE
+	ADD R2, R2, R5
+	B END_IF5
+ELSE:
+	AND R1, R3, #0x7F
+	ADD R2, R2, R1
+END_IF5:
+	ROR R2, R2, #8
+	LSR R3, R3, #8
+	SUBS R4, R4, #1
+	BGT LOOP5
+	LDR R4, =HEX_BASE_1
+	STR R2, [R4]
+
+//HEX4 to HEX5
+	MOV R2, #0
+	LDR R3, =HEX_BASE_2
+	LDR R3, [R3]
+	MOV R4, #2
+LOOP6:
+	AND R1, R0, #0x1
+	LSR R0, R0, #1
+	CMP R1, #0
+	BEQ ELSE2
+	ADD R2, R2, R5
+	B END_IF6
+ELSE2:
+	AND R1, R3, #0x7F
+	ADD R2, R2, R1
+END_IF6:
+	ROR R2, R2, #8
+	LSR R3, R3, #8
+	SUBS R4, R4, #1
+	BGT LOOP6
+	ROR R2, R2, #16
+	LDR R4, =HEX_BASE_2
+	STR R2, [R4]
+
+	POP {R4, R5}
+	BX LR
+
+
+DISPLAY_CODES:	.word 	0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x67, 0x77, 0x7C, 0x39, 0x5E, 0x79, 0x71
+
+	.end

@@ -1,0 +1,19 @@
+	.text
+
+	.equ	PS2_DATA_BASE, 0xFF200100
+
+	.global	read_PS2_data_ASM
+
+read_PS2_data_ASM:
+	LDR R1, =PS2_DATA_BASE
+	LDR R1, [R1]
+	AND R2, R1, #0x8000
+	CMP R2, #0
+	BEQ RETURN_0
+	AND R2, R1, #0xFF
+	STRB R2, [R0]
+	MOV R0, #1
+	BX LR
+RETURN_0:
+	MOV R0, #0
+	BX LR
